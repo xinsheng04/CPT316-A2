@@ -4,11 +4,11 @@
         "type": "ui_template",
         "z": "0ef80238735b5f8b",
         "group": "332f09a3f18563ad",
-        "name": "",
-        "order": 0,
-        "width": 0,
-        "height": 0,
-        "format": "<canvas id=\"draw\" width=\"280\" height=\"280\" style=\"border:1px solid black; background:black; touch-action:none;\">\n</canvas>\n<br>\n<button onclick=\"clearCanvas()\">Clear</button>\n<button onclick=\"submit()\">Predict</button>\n\n<canvas id=\"small\" width=\"28\" height=\"28\" style=\"display:none;\"></canvas>\n\n<script>\n  (function(scope) {\n    const canvas = document.getElementById(\"draw\");\n    const ctx = canvas.getContext(\"2d\");\n\n    ctx.strokeStyle = \"white\";\n    ctx.lineWidth = 18;\n    ctx.lineCap = \"round\";\n\n    let drawing = false;\n\n    function getPos(e) {\n      const rect = canvas.getBoundingClientRect();\n\n      if (e.touches) {\n        return {\n          x: e.touches[0].clientX - rect.left,\n          y: e.touches[0].clientY - rect.top\n        };\n      }\n      return {\n        x: e.clientX - rect.left,\n        y: e.clientY - rect.top\n      };\n    }\n\n    function startDraw(e) {\n      drawing = true;\n      const pos = getPos(e);\n      ctx.beginPath();\n      ctx.moveTo(pos.x, pos.y);\n      e.preventDefault();\n    }\n\n    function draw(e) {\n      if (!drawing) return;\n      const pos = getPos(e);\n      ctx.lineTo(pos.x, pos.y);\n      ctx.stroke();\n      e.preventDefault();\n    }\n\n    function endDraw(e) {\n      drawing = false;\n      ctx.closePath();\n      e.preventDefault();\n    }\n\n    // Mouse events\n    canvas.addEventListener(\"mousedown\", startDraw);\n    canvas.addEventListener(\"mousemove\", draw);\n    canvas.addEventListener(\"mouseup\", endDraw);\n    canvas.addEventListener(\"mouseleave\", endDraw);\n\n    // Touch events\n    canvas.addEventListener(\"touchstart\", startDraw);\n    canvas.addEventListener(\"touchmove\", draw);\n    canvas.addEventListener(\"touchend\", endDraw);\n\n    // Clear\n    window.clearCanvas = function() {\n      ctx.clearRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = \"black\";\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      scope.send({payload: \"clear\", reset: true})\n    };\n\n    clearCanvas();\n\n    // === MNIST PREPROCESSING ===\n\n    function downscale() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      sctx.clearRect(0, 0, 28, 28);\n      sctx.drawImage(canvas, 0, 0, 28, 28);\n    }\n\n    function getPixels() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      const img = sctx.getImageData(0, 0, 28, 28).data;\n\n      let pixels = [];\n      for (let i = 0; i < img.length; i += 4) {\n        pixels.push(img[i] / 255.0); // grayscale + normalize\n      }\n      return pixels;\n    }\n\n    window.submit = function() {\n      downscale();\n      let pixels = getPixels();\n      scope.send({ payload: pixels }); \n    };\n})(scope);\n</script>",
+        "name": "canvas",
+        "order": 4,
+        "width": 7,
+        "height": 8,
+        "format": "<div id=\"canvas-container\" style=\"float: left; width: 320px; margin-right: 20px;\">\n  <canvas id=\"draw\" width=\"320\" height=\"320\"\n    style=\"border:1px solid #444; background:black; touch-action:none; display: block;\"></canvas>\n\n  <div style=\"margin-top: 10px; display: flex; justify-content: space-between;\">\n    <button onclick=\"clearCanvas()\" style=\"flex: 1; margin-right: 5px; padding: 10px;\">Clear</button>\n    <button onclick=\"submit()\" style=\"flex: 1; margin-left: 5px; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 4px;\">Predict</button>\n  </div>\n</div>\n\n<canvas id=\"small\" width=\"28\" height=\"28\" style=\"display:none;\"></canvas>\n\n<script>\n  (function(scope) {\n    const canvas = document.getElementById(\"draw\");\n    const ctx = canvas.getContext(\"2d\");\n\n    ctx.strokeStyle = \"white\";\n    ctx.lineWidth = 18;\n    ctx.lineCap = \"round\";\n\n    let drawing = false;\n\n    function getPos(e) {\n      const rect = canvas.getBoundingClientRect();\n      // Support both Mouse and Touch events\n      const clientX = e.touches ? e.touches[0].clientX : e.clientX;\n      const clientY = e.touches ? e.touches[0].clientY : e.clientY;\n\n      return {\n        x: clientX - rect.left,\n        y: clientY - rect.top\n      };\n    }\n\n    function startDraw(e) {\n      drawing = true;\n      const pos = getPos(e);\n      ctx.beginPath();\n      ctx.moveTo(pos.x, pos.y);\n      e.preventDefault();\n    }\n\n    function draw(e) {\n      if (!drawing) return;\n      const pos = getPos(e);\n      ctx.lineTo(pos.x, pos.y);\n      ctx.stroke();\n      e.preventDefault();\n    }\n\n    function endDraw(e) {\n      drawing = false;\n      ctx.closePath();\n      e.preventDefault();\n    }\n\n    // Mouse events\n    canvas.addEventListener(\"mousedown\", startDraw);\n    canvas.addEventListener(\"mousemove\", draw);\n    canvas.addEventListener(\"mouseup\", endDraw);\n    canvas.addEventListener(\"mouseleave\", endDraw);\n\n    // Touch events\n    canvas.addEventListener(\"touchstart\", startDraw);\n    canvas.addEventListener(\"touchmove\", draw);\n    canvas.addEventListener(\"touchend\", endDraw);\n\n    // Clear\n    window.clearCanvas = function() {\n      ctx.clearRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = \"black\";\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      scope.send({payload: \"clear\", reset: true})\n    };\n\n    clearCanvas();\n\n    // === MNIST PREPROCESSING ===\n\n    function downscale() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      sctx.clearRect(0, 0, 28, 28);\n      sctx.drawImage(canvas, 0, 0, 28, 28);\n    }\n\n    function getPixels() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      const img = sctx.getImageData(0, 0, 28, 28).data;\n\n      let pixels = [];\n      for (let i = 0; i < img.length; i += 4) {\n        pixels.push(img[i] / 255.0); // grayscale + normalize\n      }\n      return pixels;\n    }\n\n    window.submit = function() {\n      downscale();\n      let pixels = getPixels();\n      scope.send({ payload: pixels }); \n    };\n})(scope);\n</script>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
@@ -18,7 +18,8 @@
         "y": 240,
         "wires": [
             [
-                "503e22369939b6f4"
+                "503e22369939b6f4",
+                "874ab63baaa0882b"
             ]
         ]
     },
@@ -45,7 +46,7 @@
         "z": "0ef80238735b5f8b",
         "name": "Predict",
         "method": "POST",
-        "ret": "txt",
+        "ret": "obj",
         "paytoqs": "ignore",
         "url": "http://127.0.0.1:5000/predict",
         "tls": "",
@@ -98,7 +99,7 @@
         "z": "0ef80238735b5f8b",
         "name": "predictor terminal outputs",
         "active": true,
-        "tosidebar": false,
+        "tosidebar": true,
         "console": false,
         "tostatus": false,
         "complete": "payload",
@@ -143,55 +144,6 @@
         ]
     },
     {
-        "id": "e2f9e2f59c51569b",
-        "type": "ui_text",
-        "z": "0ef80238735b5f8b",
-        "group": "332f09a3f18563ad",
-        "order": 1,
-        "width": "2",
-        "height": "2",
-        "name": "Detected digit",
-        "label": "Digit is:",
-        "format": "{{msg.payload.digit}}",
-        "layout": "row-center",
-        "className": "",
-        "style": false,
-        "font": "",
-        "fontSize": 16,
-        "color": "#000000",
-        "x": 1420,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "b0bd13ee5c37d4dc",
-        "type": "ui_gauge",
-        "z": "0ef80238735b5f8b",
-        "name": "",
-        "group": "332f09a3f18563ad",
-        "order": 2,
-        "width": 0,
-        "height": 0,
-        "gtype": "gage",
-        "title": "Confidence level",
-        "label": "units",
-        "format": "{{msg.payload.confidence * 100}}",
-        "min": 0,
-        "max": "100",
-        "colors": [
-            "#b30000",
-            "#e6e600",
-            "#00ff4c"
-        ],
-        "seg1": "",
-        "seg2": "",
-        "diff": false,
-        "className": "",
-        "x": 1430,
-        "y": 160,
-        "wires": []
-    },
-    {
         "id": "bebaa5d389461cf5",
         "type": "json",
         "z": "0ef80238735b5f8b",
@@ -203,8 +155,7 @@
         "y": 220,
         "wires": [
             [
-                "e2f9e2f59c51569b",
-                "b0bd13ee5c37d4dc"
+                "fba1a2fca033d4cd"
             ]
         ]
     },
@@ -252,7 +203,7 @@
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "{digit: null, confidence: 0}",
+                "to": "{\"predictions\": [[0,0,0,0,0,0,0,0,0,0]]}",
                 "tot": "jsonata"
             }
         ],
@@ -261,36 +212,166 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 920,
+        "x": 940,
         "y": 360,
         "wires": [
             [
-                "e2f9e2f59c51569b",
-                "b0bd13ee5c37d4dc"
+                "fba1a2fca033d4cd"
             ]
         ]
     },
     {
+        "id": "c75f4b8389c5b644",
+        "type": "debug",
+        "z": "0ef80238735b5f8b",
+        "name": "processed terminal outputs",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1780,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "fba1a2fca033d4cd",
+        "type": "function",
+        "z": "0ef80238735b5f8b",
+        "name": "process prediction outputs",
+        "func": "// 1. Map the raw numbers first so we can sort numerically\nlet results = msg.payload.predictions[0].map((conf, digit) => {\n    return {\n        digit: digit,\n        conf: conf, // Keep as a raw number for sorting\n    };\n});\n\n// 2. Sort using the raw number\nresults.sort((a, b) => b.conf - a.conf);\n\nmsg.payload = [...results]; \nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1450,
+        "y": 220,
+        "wires": [
+            [
+                "79ee2019a3349fe8",
+                "e2f9e2f59c51569b",
+                "e7698cdc3c13c1ec",
+                "c75f4b8389c5b644"
+            ]
+        ]
+    },
+    {
+        "id": "79ee2019a3349fe8",
+        "type": "ui_template",
+        "z": "0ef80238735b5f8b",
+        "group": "332f09a3f18563ad",
+        "name": "Prediction table",
+        "order": 2,
+        "width": 7,
+        "height": 9,
+        "format": "<div>\n    <h2>Prediction Confidences</h2>\n    <table style=\"width:100%; text-align: left; border-collapse: collapse;\">\n        <tr style=\"border-bottom: 1px solid #555;\">\n            <th>Digit</th>\n            <th>Confidence</th>\n        </tr>\n        <tr ng-repeat=\"item in msg.payload track by $index\">\n            <td style=\"font-size: 20px; font-weight: bold; padding: 5px;\">{{item.digit}}</td>\n            <td>\n                <div style=\"background: #eee; width: 100%; border-radius: 5px; margin: 5px 0;\">\n                    <div\n                        style=\"background: #3498db; width: {{item.conf * 100}}%; padding: 2px 5px; color: white; font-size: 12px; border-radius: 5px; min-width: 20px;\">\n                        {{(item.conf * 100).toFixed(1)}}%\n                    </div>\n                </div>\n            </td>\n        </tr>\n    </table>\n</div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1740,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e2f9e2f59c51569b",
+        "type": "ui_text",
+        "z": "0ef80238735b5f8b",
+        "group": "332f09a3f18563ad",
+        "order": 3,
+        "width": 8,
+        "height": 1,
+        "name": "Detected digit",
+        "label": "Model identifies",
+        "format": "{{msg.payload[0].digit}}",
+        "layout": "row-center",
+        "className": "",
+        "style": true,
+        "font": "Trebuchet MS,Helvetica,sans-serif",
+        "fontSize": "25",
+        "color": "#000000",
+        "x": 1740,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "e7698cdc3c13c1ec",
+        "type": "ui_gauge",
+        "z": "0ef80238735b5f8b",
+        "name": "Best confidence level",
+        "group": "332f09a3f18563ad",
+        "order": 5,
+        "width": 8,
+        "height": 8,
+        "gtype": "wave",
+        "title": "",
+        "label": "%",
+        "format": "{{msg.payload[0].conf * 100}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1760,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "874ab63baaa0882b",
+        "type": "ui_text",
+        "z": "0ef80238735b5f8b",
+        "group": "332f09a3f18563ad",
+        "order": 1,
+        "width": 7,
+        "height": 1,
+        "name": "",
+        "label": "",
+        "format": "Draw here",
+        "layout": "row-left",
+        "className": "",
+        "style": true,
+        "font": "",
+        "fontSize": "25",
+        "color": "#000000",
+        "x": 250,
+        "y": 180,
+        "wires": []
+    },
+    {
         "id": "332f09a3f18563ad",
         "type": "ui_group",
-        "name": "Default",
+        "name": "Digit classification",
         "tab": "a659e6edd84b54dc",
         "order": 1,
         "disp": true,
-        "width": 6,
+        "width": "22",
         "collapse": false,
         "className": ""
     },
     {
         "id": "a659e6edd84b54dc",
         "type": "ui_tab",
-        "name": "Home",
+        "name": "Digit Classifier System",
         "icon": "dashboard",
         "disabled": false,
         "hidden": false
     },
     {
-        "id": "0a50784ec91aac2e",
+        "id": "490394e5e8068ba7",
         "type": "global-config",
         "env": [],
         "modules": {

@@ -21,15 +21,9 @@ def predict():
         pixels = np.array(data, dtype=np.float32).reshape(1, 784)
         
         preds = model.predict(pixels, verbose=0)
-        
-        # CRITICAL: Convert numpy types to native Python types
-        digit = int(np.argmax(preds))
-        confidence = round(float(np.max(preds)), 5)
-        
-        # This is what Node-RED is waiting for
+
         return jsonify({
-            "digit": digit,
-            "confidence": confidence
+            "predictions": preds.tolist()
         })
     except Exception as e:
         print(f"Python Error: {e}")
