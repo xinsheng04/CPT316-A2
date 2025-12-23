@@ -1,0 +1,300 @@
+[
+    {
+        "id": "18dfd17b21d50506",
+        "type": "ui_template",
+        "z": "0ef80238735b5f8b",
+        "group": "332f09a3f18563ad",
+        "name": "",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "format": "<canvas id=\"draw\" width=\"280\" height=\"280\" style=\"border:1px solid black; background:black; touch-action:none;\">\n</canvas>\n<br>\n<button onclick=\"clearCanvas()\">Clear</button>\n<button onclick=\"submit()\">Predict</button>\n\n<canvas id=\"small\" width=\"28\" height=\"28\" style=\"display:none;\"></canvas>\n\n<script>\n  (function(scope) {\n    const canvas = document.getElementById(\"draw\");\n    const ctx = canvas.getContext(\"2d\");\n\n    ctx.strokeStyle = \"white\";\n    ctx.lineWidth = 18;\n    ctx.lineCap = \"round\";\n\n    let drawing = false;\n\n    function getPos(e) {\n      const rect = canvas.getBoundingClientRect();\n\n      if (e.touches) {\n        return {\n          x: e.touches[0].clientX - rect.left,\n          y: e.touches[0].clientY - rect.top\n        };\n      }\n      return {\n        x: e.clientX - rect.left,\n        y: e.clientY - rect.top\n      };\n    }\n\n    function startDraw(e) {\n      drawing = true;\n      const pos = getPos(e);\n      ctx.beginPath();\n      ctx.moveTo(pos.x, pos.y);\n      e.preventDefault();\n    }\n\n    function draw(e) {\n      if (!drawing) return;\n      const pos = getPos(e);\n      ctx.lineTo(pos.x, pos.y);\n      ctx.stroke();\n      e.preventDefault();\n    }\n\n    function endDraw(e) {\n      drawing = false;\n      ctx.closePath();\n      e.preventDefault();\n    }\n\n    // Mouse events\n    canvas.addEventListener(\"mousedown\", startDraw);\n    canvas.addEventListener(\"mousemove\", draw);\n    canvas.addEventListener(\"mouseup\", endDraw);\n    canvas.addEventListener(\"mouseleave\", endDraw);\n\n    // Touch events\n    canvas.addEventListener(\"touchstart\", startDraw);\n    canvas.addEventListener(\"touchmove\", draw);\n    canvas.addEventListener(\"touchend\", endDraw);\n\n    // Clear\n    window.clearCanvas = function() {\n      ctx.clearRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = \"black\";\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      scope.send({payload: \"clear\", reset: true})\n    };\n\n    clearCanvas();\n\n    // === MNIST PREPROCESSING ===\n\n    function downscale() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      sctx.clearRect(0, 0, 28, 28);\n      sctx.drawImage(canvas, 0, 0, 28, 28);\n    }\n\n    function getPixels() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      const img = sctx.getImageData(0, 0, 28, 28).data;\n\n      let pixels = [];\n      for (let i = 0; i < img.length; i += 4) {\n        pixels.push(img[i] / 255.0); // grayscale + normalize\n      }\n      return pixels;\n    }\n\n    window.submit = function() {\n      downscale();\n      let pixels = getPixels();\n      scope.send({ payload: pixels }); \n    };\n})(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 100,
+        "y": 240,
+        "wires": [
+            [
+                "503e22369939b6f4"
+            ]
+        ]
+    },
+    {
+        "id": "a5af54a5abbe3b71",
+        "type": "debug",
+        "z": "0ef80238735b5f8b",
+        "name": "Canvas output data",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 470,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "9f0308a4d13b59ea",
+        "type": "http request",
+        "z": "0ef80238735b5f8b",
+        "name": "Predict",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://127.0.0.1:5000/predict",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 920,
+        "y": 180,
+        "wires": [
+            [
+                "65d2f0393437f556",
+                "bebaa5d389461cf5"
+            ]
+        ]
+    },
+    {
+        "id": "6d84d9ec68190bf1",
+        "type": "change",
+        "z": "0ef80238735b5f8b",
+        "name": "configure headers to json",
+        "rules": [
+            {
+                "t": "set",
+                "p": "headers",
+                "pt": "msg",
+                "to": "{\"content-type\": \"application/json\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 710,
+        "y": 240,
+        "wires": [
+            [
+                "9f0308a4d13b59ea",
+                "78ed17f49214b971"
+            ]
+        ]
+    },
+    {
+        "id": "65d2f0393437f556",
+        "type": "debug",
+        "z": "0ef80238735b5f8b",
+        "name": "predictor terminal outputs",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1150,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "78ed17f49214b971",
+        "type": "debug",
+        "z": "0ef80238735b5f8b",
+        "name": "JSON object",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "b3dba922626b9758",
+        "type": "json",
+        "z": "0ef80238735b5f8b",
+        "name": "JSON Stringify",
+        "property": "payload",
+        "action": "str",
+        "pretty": false,
+        "x": 460,
+        "y": 240,
+        "wires": [
+            [
+                "6d84d9ec68190bf1"
+            ]
+        ]
+    },
+    {
+        "id": "e2f9e2f59c51569b",
+        "type": "ui_text",
+        "z": "0ef80238735b5f8b",
+        "group": "332f09a3f18563ad",
+        "order": 1,
+        "width": "2",
+        "height": "2",
+        "name": "Detected digit",
+        "label": "Digit is:",
+        "format": "{{msg.payload.digit}}",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1420,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "b0bd13ee5c37d4dc",
+        "type": "ui_gauge",
+        "z": "0ef80238735b5f8b",
+        "name": "",
+        "group": "332f09a3f18563ad",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Confidence level",
+        "label": "units",
+        "format": "{{msg.payload.confidence * 100}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#b30000",
+            "#e6e600",
+            "#00ff4c"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1430,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "bebaa5d389461cf5",
+        "type": "json",
+        "z": "0ef80238735b5f8b",
+        "name": "Decode JSON into JS Object",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 1160,
+        "y": 220,
+        "wires": [
+            [
+                "e2f9e2f59c51569b",
+                "b0bd13ee5c37d4dc"
+            ]
+        ]
+    },
+    {
+        "id": "503e22369939b6f4",
+        "type": "switch",
+        "z": "0ef80238735b5f8b",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "clear",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "clear",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 250,
+        "y": 240,
+        "wires": [
+            [
+                "b3dba922626b9758",
+                "a5af54a5abbe3b71"
+            ],
+            [
+                "c9e688be643b19f6"
+            ]
+        ]
+    },
+    {
+        "id": "c9e688be643b19f6",
+        "type": "change",
+        "z": "0ef80238735b5f8b",
+        "name": "reset displays",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{digit: null, confidence: 0}",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 920,
+        "y": 360,
+        "wires": [
+            [
+                "e2f9e2f59c51569b",
+                "b0bd13ee5c37d4dc"
+            ]
+        ]
+    },
+    {
+        "id": "332f09a3f18563ad",
+        "type": "ui_group",
+        "name": "Default",
+        "tab": "a659e6edd84b54dc",
+        "order": 1,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "a659e6edd84b54dc",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "0a50784ec91aac2e",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6"
+        }
+    }
+]
