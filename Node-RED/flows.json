@@ -8,7 +8,7 @@
         "order": 4,
         "width": 7,
         "height": 8,
-        "format": "<div id=\"canvas-container\" style=\"float: left; width: 320px; margin-right: 20px;\">\n  <canvas id=\"draw\" width=\"320\" height=\"320\"\n    style=\"border:1px solid #444; background:black; touch-action:none; display: block;\"></canvas>\n\n  <div style=\"margin-top: 10px; display: flex; justify-content: space-between;\">\n    <button onclick=\"clearCanvas()\" style=\"flex: 1; margin-right: 5px; padding: 10px;\">Clear</button>\n    <button onclick=\"submit()\" style=\"flex: 1; margin-left: 5px; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 4px;\">Predict</button>\n  </div>\n</div>\n\n<canvas id=\"small\" width=\"28\" height=\"28\" style=\"display:none;\"></canvas>\n\n<script>\n  (function(scope) {\n    const canvas = document.getElementById(\"draw\");\n    const ctx = canvas.getContext(\"2d\");\n\n    ctx.strokeStyle = \"white\";\n    ctx.lineWidth = 18;\n    ctx.lineCap = \"round\";\n\n    let drawing = false;\n\n    function getPos(e) {\n      const rect = canvas.getBoundingClientRect();\n      // Support both Mouse and Touch events\n      const clientX = e.touches ? e.touches[0].clientX : e.clientX;\n      const clientY = e.touches ? e.touches[0].clientY : e.clientY;\n\n      return {\n        x: clientX - rect.left,\n        y: clientY - rect.top\n      };\n    }\n\n    function startDraw(e) {\n      drawing = true;\n      const pos = getPos(e);\n      ctx.beginPath();\n      ctx.moveTo(pos.x, pos.y);\n      e.preventDefault();\n    }\n\n    function draw(e) {\n      if (!drawing) return;\n      const pos = getPos(e);\n      ctx.lineTo(pos.x, pos.y);\n      ctx.stroke();\n      e.preventDefault();\n    }\n\n    function endDraw(e) {\n      drawing = false;\n      ctx.closePath();\n      e.preventDefault();\n    }\n\n    // Mouse events\n    canvas.addEventListener(\"mousedown\", startDraw);\n    canvas.addEventListener(\"mousemove\", draw);\n    canvas.addEventListener(\"mouseup\", endDraw);\n    canvas.addEventListener(\"mouseleave\", endDraw);\n\n    // Touch events\n    canvas.addEventListener(\"touchstart\", startDraw);\n    canvas.addEventListener(\"touchmove\", draw);\n    canvas.addEventListener(\"touchend\", endDraw);\n\n    // Clear\n    window.clearCanvas = function() {\n      ctx.clearRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = \"black\";\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      scope.send({payload: \"clear\", reset: true})\n    };\n\n    clearCanvas();\n\n    // === MNIST PREPROCESSING ===\n\n    function downscale() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      sctx.clearRect(0, 0, 28, 28);\n      sctx.drawImage(canvas, 0, 0, 28, 28);\n    }\n\n    function getPixels() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      const img = sctx.getImageData(0, 0, 28, 28).data;\n\n      let pixels = [];\n      for (let i = 0; i < img.length; i += 4) {\n        pixels.push(img[i] / 255.0); // grayscale + normalize\n      }\n      return pixels;\n    }\n\n    window.submit = function() {\n      downscale();\n      let pixels = getPixels();\n      scope.send({ payload: pixels }); \n    };\n})(scope);\n</script>",
+        "format": "<div id=\"canvas-container\" style=\"float: left; width: 320px; margin-right: 20px;\">\n  <canvas id=\"draw\" width=\"320\" height=\"320\"\n    style=\"border:1px solid #444; background:black; touch-action:none; display: block;\"></canvas>\n\n  <div style=\"margin-top: 10px; display: flex; justify-content: space-between;\">\n    <button onclick=\"clearCanvas()\" style=\"flex: 1; margin-right: 5px; padding: 10px;\">Clear</button>\n    <button onclick=\"submit()\" style=\"flex: 1; margin-left: 5px; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 4px;\">Predict</button>\n  </div>\n</div>\n\n<canvas id=\"small\" width=\"28\" height=\"28\" style=\"display:none;\"></canvas>\n\n<script>\n  (function(scope) {\n    const canvas = document.getElementById(\"draw\");\n    const ctx = canvas.getContext(\"2d\");\n\n    ctx.strokeStyle = \"white\";\n    ctx.lineWidth = 15;\n    ctx.lineCap = \"round\";\n\n    let drawing = false;\n\n    function getPos(e) {\n      const rect = canvas.getBoundingClientRect();\n      // Support both Mouse and Touch events\n      const clientX = e.touches ? e.touches[0].clientX : e.clientX;\n      const clientY = e.touches ? e.touches[0].clientY : e.clientY;\n\n      return {\n        x: clientX - rect.left,\n        y: clientY - rect.top\n      };\n    }\n\n    function startDraw(e) {\n      drawing = true;\n      const pos = getPos(e);\n      ctx.beginPath();\n      ctx.moveTo(pos.x, pos.y);\n      e.preventDefault();\n    }\n\n    function draw(e) {\n      if (!drawing) return;\n      const pos = getPos(e);\n      ctx.lineTo(pos.x, pos.y);\n      ctx.stroke();\n      e.preventDefault();\n    }\n\n    function endDraw(e) {\n      drawing = false;\n      ctx.closePath();\n      e.preventDefault();\n    }\n\n    // Mouse events\n    canvas.addEventListener(\"mousedown\", startDraw);\n    canvas.addEventListener(\"mousemove\", draw);\n    canvas.addEventListener(\"mouseup\", endDraw);\n    canvas.addEventListener(\"mouseleave\", endDraw);\n\n    // Touch events\n    canvas.addEventListener(\"touchstart\", startDraw);\n    canvas.addEventListener(\"touchmove\", draw);\n    canvas.addEventListener(\"touchend\", endDraw);\n\n    // Clear\n    window.clearCanvas = function() {\n      ctx.clearRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = \"black\";\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      scope.send({payload: \"clear\", reset: true})\n    };\n\n    clearCanvas();\n\n    // === MNIST PREPROCESSING ===\n\n    function downscale() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      sctx.clearRect(0, 0, 28, 28);\n      sctx.drawImage(canvas, 0, 0, 28, 28);\n    }\n\n    function getPixels() {\n      const small = document.getElementById(\"small\");\n      const sctx = small.getContext(\"2d\");\n      const img = sctx.getImageData(0, 0, 28, 28).data;\n\n      let pixels = [];\n      for (let i = 0; i < img.length; i += 4) {\n        pixels.push(img[i] / 255.0); // grayscale + normalize\n      }\n      return pixels;\n    }\n\n    window.submit = function() {\n      downscale();\n      let pixels = getPixels();\n      scope.send({ payload: pixels }); \n    };\n})(scope);\n</script>",
         "storeOutMessages": true,
         "fwdInMessages": true,
         "resendOnRefresh": true,
@@ -36,7 +36,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 470,
+        "x": 530,
         "y": 180,
         "wires": []
     },
@@ -84,7 +84,7 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 710,
+        "x": 670,
         "y": 240,
         "wires": [
             [
@@ -99,7 +99,7 @@
         "z": "0ef80238735b5f8b",
         "name": "predictor terminal outputs",
         "active": true,
-        "tosidebar": true,
+        "tosidebar": false,
         "console": false,
         "tostatus": false,
         "complete": "payload",
@@ -233,7 +233,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1780,
+        "x": 1720,
         "y": 180,
         "wires": []
     },
@@ -254,9 +254,8 @@
         "wires": [
             [
                 "79ee2019a3349fe8",
-                "e2f9e2f59c51569b",
-                "e7698cdc3c13c1ec",
-                "c75f4b8389c5b644"
+                "c75f4b8389c5b644",
+                "9aaa11624e521555"
             ]
         ]
     },
@@ -275,7 +274,7 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1740,
+        "x": 1680,
         "y": 220,
         "wires": [
             []
@@ -298,8 +297,8 @@
         "font": "Trebuchet MS,Helvetica,sans-serif",
         "fontSize": "25",
         "color": "#000000",
-        "x": 1740,
-        "y": 260,
+        "x": 2300,
+        "y": 240,
         "wires": []
     },
     {
@@ -326,8 +325,8 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 1760,
-        "y": 300,
+        "x": 2320,
+        "y": 280,
         "wires": []
     },
     {
@@ -347,9 +346,105 @@
         "font": "",
         "fontSize": "25",
         "color": "#000000",
-        "x": 250,
+        "x": 290,
         "y": 180,
         "wires": []
+    },
+    {
+        "id": "9aaa11624e521555",
+        "type": "switch",
+        "z": "0ef80238735b5f8b",
+        "name": "Verification threshold",
+        "property": "payload[0].conf",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            },
+            {
+                "t": "gt",
+                "v": "0.5",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 1700,
+        "y": 260,
+        "wires": [
+            [
+                "e2f89983718b3300"
+            ],
+            [
+                "e2f9e2f59c51569b",
+                "e7698cdc3c13c1ec"
+            ],
+            [
+                "ddcfae3dc6ef2957"
+            ]
+        ]
+    },
+    {
+        "id": "ddcfae3dc6ef2957",
+        "type": "change",
+        "z": "0ef80238735b5f8b",
+        "name": "Unknown digit",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload[0].digit",
+                "pt": "msg",
+                "to": "\"Unknown\"",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1940,
+        "y": 300,
+        "wires": [
+            [
+                "e2f9e2f59c51569b",
+                "e7698cdc3c13c1ec"
+            ]
+        ]
+    },
+    {
+        "id": "e2f89983718b3300",
+        "type": "change",
+        "z": "0ef80238735b5f8b",
+        "name": "Clear displays",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload[0]",
+                "pt": "msg",
+                "to": "{\"digit\": \"None\", \"conf\": 0}",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1940,
+        "y": 220,
+        "wires": [
+            [
+                "e2f9e2f59c51569b",
+                "e7698cdc3c13c1ec"
+            ]
+        ]
     },
     {
         "id": "332f09a3f18563ad",
@@ -371,7 +466,7 @@
         "hidden": false
     },
     {
-        "id": "490394e5e8068ba7",
+        "id": "496bcffcbfc5bfa9",
         "type": "global-config",
         "env": [],
         "modules": {
